@@ -22,18 +22,20 @@ const Skills = () => {
 
   const token = localStorage.getItem("token");
 useEffect(() => {
-  if (!token) return;
+  // Remove token check temporarily to debug
   fetch("http://localhost:5000/api/skills", {
-    headers: { "Authorization": `Bearer ${token}` },
-    cache: "no-store"  // <-- This disables caching, forces fresh fetch
+    headers: token ? { "Authorization": `Bearer ${token}` } : {}
   })
-    .then(res => res.json())
+    .then(res => {
+      console.log("Skills fetch status:", res.status);
+      return res.json();
+    })
     .then(data => {
       setSkills(Array.isArray(data) ? data : []);
       console.log("Fetched skills:", data);
     })
     .catch(err => console.error("Fetch error:", err));
-}, [token]);
+}, []);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/familiartags")
