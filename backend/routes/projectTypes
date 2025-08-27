@@ -1,0 +1,53 @@
+const express = require('express');
+const router = express.Router();
+const sql = require('mssql');
+const { requireAuth } = require('./auth'); // adjust path as needed
+
+// GET all project types
+router.get('/', async (req, res) => {
+  try {
+    await sql.connect(process.env.MSSQL_CONN_STRING);
+    const result = await sql.query`SELECT * FROM ProjectTypes ORDER BY name`;
+    res.json(result.recordset);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ADD a project type
+router.post('/', async (req, res) => {
+  const { name } = req.body;
+  try {
+    await sql.connect(process.env.MSSQL_CONN_STRING);
+    await sql.query`INSERT INTO ProjectTypes (name) VALUES (${name})`;
+    const result = await sql.query`SELECT * FROM ProjectTypes ORDER BY name`;
+    res.json(result.recordset);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// UPDATE a project type
+router.put('/:id', requireAuth, async (req, res) => {
+  const { name } = req.body;
+  try {
+    await sql.connect(process.env.MSSQL_CONN_STRING);
+    await sql.query`UPDATE ProjectTypes SET name=${name} WHERE id=${req.params.id}`;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE a project type
+router.delete('/:id', requireAuth, async (req, res) => {
+  try {
+    await sql.connect(process.env.MSSQL_CONN_STRING);
+    await sql.query`DELETE FROM ProjectTypes WHERE id=${req.params.id}`;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
